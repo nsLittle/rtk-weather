@@ -1,37 +1,31 @@
 'use client';
-import React, { useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Sparklines, SparklinesLine } from 'react-sparklines';
 import { fetchWeather } from './store/slices/search';
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState('');
-  const [data, setData] = useState('');
+  const [searchResults, setSearchResults] = useState([]); // <-- Change 1: Using searchResults to store data
   const dispatch = useDispatch();
-  const { city, temperature, pressure, humidity, loading, error } =
-		useSelector((state) => state.weather);
 
   const handleSearch = () => {
-    console.log(searchInput);
-    if (searchInput.trim() == '') {
-      alert('Error! You must enter a ciry name.');
+    if (searchInput.trim() === '') {
+      alert('Error! You must enter a city name.');
       return;
     }
 
-    if (searchInput.trim() !=='') {
-      dispatch(fetchWeather(searchInput))
-        .then((response) => {
-          console.log(response.payload);
-
-        if(response.payload.cod == '404') {
+    dispatch(fetchWeather(searchInput))
+      .then((response) => {
+        if (response.payload.cod === '404') {
           alert('Error! You did not enter a correctly spelled city.');
-        } else if(response.payload === ' ') {
-          alert('Error! You must enter a city name.')
         } else {
-          setData(response.payload);
+          setSearchResults((prevResults) => [
+            ...prevResults,
+            { city: searchInput, data: response.payload } // <-- Change 2: Storing new search result
+          ]);
         }
-        });
-    }
+      });
   };
 
   const calculateAverage = (dataList, property) => {
@@ -47,76 +41,66 @@ export default function Home() {
       <br />
       <button onClick={handleSearch}>Search</button>
 
-      {data?.city && <h2 className='other-data'>{data.city.name}</h2>}
+      {searchResults.map((result, index) => ( // <-- Change 3: Iterating over searchResults
+        <div key={index}>
+          <h2 className='other-data'>{result.city}</h2>
 
+          {result.data && result.data.list && result.data.list.length > 0 && (
+            <>
+              <h3>Temperature</h3>
+              <div style={{ width: '300px', height: '125px', padding: '0', margin: '0' }}>
+                <Sparklines data={result.data.list.slice(0, 5).map(datum => datum.main.temp)} height={50}>
+                  <SparklinesLine color="#FFA500" />
+                </Sparklines>
+              </div>
+              <div className='search-results-five'>
+                <ul>
+                  {result.data.list.slice(0, 5).map((datum, index) => (
+                    <li key={index} className='data'>{datum.main && datum.main.temp}</li>
+                  ))}
+                </ul>
+                <ul>
+                  <li className='data'>5-day average: {calculateAverage(result.data.list, 'temp')}</li>
+                </ul>
+              </div>
 
-      {data && data.list && data.list.length > 0 && (
-        <>
-          <h3>Temperature</h3>
-          {data && data.list && data.list.length > 0 && (
-            <div style={{width: '500px', height: '125px', padding: '0', margin: '0'}}>
-              <Sparklines data={data.list.slice(0,5).map(datum => datum.main.temp)} height={50} dataLabelSettings={{visible:['All']}}>
-              <SparklinesLine color="#FFA500" />
-              </Sparklines>
-            </div>
+              <h3>Pressure</h3>
+              <div style={{ width: '300px', height: '125px', padding: '0', margin: '0' }}>
+                <Sparklines data={result.data.list.slice(0, 5).map(item => item.main.pressure)} height={50}>
+                  <SparklinesLine color="#000080" />
+                </Sparklines>
+              </div>
+              <div className='search-results-five'>
+                <ul>
+                  {result.data.list.slice(0, 5).map((item, index) => (
+                    <li key={index} className='data'>{item.main && item.main.pressure}</li>
+                  ))}
+                </ul>
+                <ul>
+                  <li className='data'>5-day average: {calculateAverage(result.data.list, 'pressure')}</li>
+                </ul>
+              </div>
+
+              <h3>Humidity</h3>
+              <div style={{ width: '300px', height: '125px', padding: '0', margin: '0' }}>
+                <Sparklines data={result.data.list.slice(0, 5).map(item => item.main.humidity)} height={50}>
+                  <SparklinesLine color="#008000" />
+                </Sparklines>
+              </div>
+              <div className='search-results-five'>
+                <ul>
+                  {result.data.list.slice(0, 5).map((item, index) => (
+                    <li key={index} className='data'>{item.main && item.main.humidity}</li>
+                  ))}
+                </ul>
+                <ul>
+                  <li className='data'>5-day average: {calculateAverage(result.data.list, 'humidity')}</li>
+                </ul>
+              </div>
+            </>
           )}
-          {data && (
-            <div className='search-results-five'>
-              <ul>
-                {data.list ? data.list.slice(0, 5).map((datum, index) => (
-                  <li key={index} className='data'>{datum.main && datum.main.temp}</li>
-                  ),
-                ) : ''}
-              </ul>
-              <ul>
-                <li className='data'>5-day average: {calculateAverage(data.list, 'temp')}</li>
-              </ul>
-            </div>
-          )}
-
-          <h3>Pressure</h3>
-              {data?.list && (
-                 <div style={{width: '500px', height: '125px', padding: '0', margin: '0'}}>
-                    <Sparklines data={data.list.slice(0,5).map(item => item.main.pressure)} height={50} dataLabelSettings={{visible:['All']}}>
-                    <SparklinesLine color="#000080" />
-                    </Sparklines>
-                    </div>
-                  )}
-                {data && (
-                  <div className='search-results-five'>
-                    <ul>
-                      {data.list && data.list.slice(0, 5).map((item, index) => (
-                        <li key={index} className='data'>{item.main && item.main.pressure}</li>
-                        ))}
-                    </ul>
-                    <ul>
-                      <li className='data'>5-day average: {calculateAverage(data.list, 'pressure')}</li>
-                    </ul>
-                  </div>
-                )}
-
-            <h3>Humidity</h3>
-                {data?.list && (
-                  <div style={{width: '500px', height: '125px', padding: '0', margin: '0'}}>
-                    <Sparklines data={data.list.slice(0,5).map(item => item.main.humidity)} height={50} dataLabelSettings={{visible:['All']}}>
-                    <SparklinesLine color="#008000" />
-                    </Sparklines>
-                  </div>  
-                )}
-                  {data && (
-                    <div className='search-results-five'>
-                      <ul>
-                        {data.list && data.list.slice(0, 5).map((item, index) => (
-                          <li key={index} className='data'>{item.main && item.main.humidity}</li>
-                          ))}
-                      </ul>
-                      <ul>
-                        <li className='data'>5-day average: {calculateAverage(data.list, 'humidity')}</li>
-                      </ul>
-                    </div>
-                  )}
-        </>
-      )}
+        </div>
+      ))}
     </main>
-   );
+  );
 };

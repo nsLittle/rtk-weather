@@ -35,6 +35,5 @@ RTK-Weather
 
 ### Things to Add/Edit
 
-1. Fix sizing issue with SparklineLines chart
-2. Clear input field onClick
-3. Allow user to input a second city while maintaining first city to remain
+1. Clear input field onClick
+2. Tighen visuals
