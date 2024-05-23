@@ -6,11 +6,11 @@ import { fetchWeather } from './store/slices/search';
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState('');
-  const [searchResults, setSearchResults] = useState([]); // <-- Change 1: Using searchResults to store data
+  const [searchResults, setSearchResults] = useState([]); 
   const dispatch = useDispatch();
 
   const handleSearch = () => {
-    if (searchInput.trim() === '') {
+    if (searchInput.trim() === ''){
       alert('Error! You must enter a city name.');
       return;
     }
@@ -22,7 +22,7 @@ export default function Home() {
         } else {
           setSearchResults((prevResults) => [
             ...prevResults,
-            { city: searchInput, data: response.payload } // <-- Change 2: Storing new search result
+            { city: searchInput, data: response.payload }
           ]);
         }
       });
@@ -41,7 +41,7 @@ export default function Home() {
       <br />
       <button onClick={handleSearch}>Search</button>
 
-      {searchResults.map((result, index) => ( // <-- Change 3: Iterating over searchResults
+      {searchResults.map((result, index) => ( 
         <div key={index}>
           <h2 className='other-data'>{result.city}</h2>
 

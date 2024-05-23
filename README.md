@@ -36,4 +36,4 @@ RTK-Weather
 ### Things to Add/Edit
 
 1. Clear input field onClick
-2. Tighen visuals
+2. Cleaner visual - each city result should be on one line
